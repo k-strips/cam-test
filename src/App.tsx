@@ -1,6 +1,6 @@
 import * as React from "react";
 import Webcam from "react-webcam";
-import { IconScan } from "@tabler/icons-react";
+import { IconLoaderQuarter, IconScan } from "@tabler/icons-react";
 import "./App.css";
 import {
   Card,
@@ -16,20 +16,24 @@ import { extractText } from "./utils/ocr";
 const videoConstraints = {
   width: 1920,
   height: 1080,
-  facingMode: "user",
+  // facingMode: "user",
 
-  // facingMode: { exact: "environment" },
+  facingMode: { exact: "environment" },
 };
 
 function App() {
   const [text, setText] = React.useState<string | null>(null);
+  const [isLoading, setisLoading] = React.useState<boolean>(false);
   const webcamRef = React.useRef<Webcam>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
-  const handleCapture = React.useCallback(() => {
+  const handleCapture = React.useCallback(async () => {
+    setisLoading(true);
     const image = webcamRef.current?.getScreenshot();
     console.log(image);
-    const te = extractText(image!);
+    const te = await extractText(image!);
+    setText(te!);
+    setisLoading(false);
     console.log(te);
   }, []);
 
@@ -70,6 +74,13 @@ function App() {
               height={videoConstraints.height}
               className="absolute w-full h-full"
             />
+            <div className="absolute w-full h-full flex items-center justify-center">
+              {isLoading ? (
+                <IconLoaderQuarter className="w-16 h-16 animate-spin" />
+              ) : (
+                <p className="font-bold text-white">{text}</p>
+              )}
+            </div>
           </AspectRatio>
           <div className="relative w-full h-full -mt-16 md:-mt-20">
             <Button
